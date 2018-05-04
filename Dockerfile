@@ -1,7 +1,7 @@
 FROM node:9-alpine
 
 RUN apk update
-RUN apk add --no-cache curl make gcc g++ python
+RUN apk add --no-cache curl make gcc g++
 RUN apk add --no-cache linux-headers binutils-gold gnupg libstdc++
 RUN apk add --no-cache bash curl git nodejs yarn
 RUN apk add --update nodejs nodejs-npm && npm install npm@latest -g
@@ -23,7 +23,8 @@ WORKDIR /app
 COPY package.json /app/
 ADD . /app
 
-RUN yarn install
+RUN npm install
+#RUN yarn install
 
 EXPOSE 3000
 CMD ["node", "server.js"]

@@ -9,10 +9,12 @@ const Storage = require('@google-cloud/storage');
 const QUALITY = process.env.QUALITY || 80;
 const BUCKET_NAME = process.env.BUCKET_NAME;
 const PROJECT_ID = process.env.PROJECT_ID;
+const KEY_FILENAME = process.env.KEY_FILENAME;
 const SUFFIX = '-thumb1';
 
 const storage = new Storage({
-  projectId: PROJECT_ID
+  projectId: PROJECT_ID,
+  keyFilename: KEY_FILENAME
 });
 
 exports.saveScreen = function(domain, url) {
@@ -73,6 +75,9 @@ exports.upload = async function(domain) {
   var bucketName = BUCKET_NAME;
   var filename = '.' + DIR + '/' + domain + SUFFIX + '.png';
 
+  console.log('filename');
+  console.log(filename);
+
   await storage
     .bucket(bucketName)
     .upload(filename)
@@ -84,6 +89,9 @@ exports.upload = async function(domain) {
     });
 
   filename = domain + SUFFIX + '.png';
+
+  console.log('filename');
+  console.log(filename);
 
   await storage
     .bucket(bucketName)
@@ -102,11 +110,16 @@ exports.upload = async function(domain) {
 exports.screen = async function(domain, url) {
 
   var path = await exports.saveScreen(domain, url)
+  console.log('path');
+  console.log(path);
   var result = await exports.resize(path);
+  console.log('resize');
+  //console.log(result);
   var image_url = await exports.upload(domain);
+  console.log('image url');
+  console.log(image_url);
 
   return {
     image: image_url
   };
 }
-
