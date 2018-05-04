@@ -1,0 +1,21 @@
+{
+  "name": "screenshot",
+  "version": "1.0.0",
+  "description": "Making screenshot for given URL and returns image url",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Mateusz Rzepa",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/storage": "^1.6.0",
+    "bluebird": "^3.5.1",
+    "express": "^4.16.2",
+    "im-resize": "^2.3.2",
+    "lodash": "^4.17.5",
+    "pageres": "^4.5.1"
+  },
+  "devDependencies": {}
+}
