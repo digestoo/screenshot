@@ -1,6 +1,6 @@
 # Screenshot
 
-Simple microservice which is making screenshot for a given url and returns an image url from google storage
+Simple microservice which is making screenshot for a given url, saves it to google storage and returns url
 
 ### Run API 
 
@@ -23,6 +23,7 @@ docker run -it -p 3000:3000 cigolpl/screenshot
 - `PORT`
 - `PROJECT_ID`
 - `BUCKET_NAME`
+- `KEY_FILENAME`
 
 ## Making requests
 
@@ -37,4 +38,3 @@ URL params:
 ## License
 
 MIT
-
