@@ -17,21 +17,25 @@ const storage = new Storage({
   keyFilename: KEY_FILENAME
 });
 
-exports.saveScreen = function(domain, url) {
+//exports.saveScreen = function(domain, url) {
+exports.saveScreen = function(data) {
 
-  var new_name = domain;
+  var new_name = (data.url || data.domain) + '-' + data.random;
+  console.log('new_name: ' + new_name)
   return new Promise(function(resolve, reject) {
     const pageres = new Pageres({
       delay: 1,
       filename: '<%= url %>',
       timeout: 20
     })
-    .src(url || domain, [WIDTH + 'x' + HEIGHT], {crop: true})
+    .src(new_name, [WIDTH + 'x' + HEIGHT], {crop: true})
     //.src(url || domain, [WIDTH + 'x' + HEIGHT], {crop: false})
     .dest(__dirname + DIR)
     .run()
     .then(function(val) {
-      return resolve(__dirname + DIR + '/' + new_name + '.png');
+      var output = __dirname + DIR + '/' + new_name + '.png';
+      console.log('Local image: ' + output);
+      return resolve(output);
     })
     .catch(function (err) {
       return reject(err)
@@ -70,10 +74,12 @@ exports.resize = function(path) {
   })
 }
 
-exports.upload = async function(domain) {
+//exports.upload = async function(domain) {
+exports.upload = async function(data) {
 
   var bucketName = BUCKET_NAME;
-  var filename = '.' + DIR + '/' + domain + SUFFIX + '.png';
+  var last_part = data.domain + '-' + data.random + SUFFIX + '.png';
+  var filename = '.' + DIR + '/' + last_part;
 
   console.log('filename');
   console.log(filename);
@@ -82,13 +88,14 @@ exports.upload = async function(domain) {
     .bucket(bucketName)
     .upload(filename)
     .then(res => {
-      //console.log(`${filename} uploaded to ${bucketName}.`);
+        //console.log(JSON.stringify(res, null, 2));
+      console.log(`${filename} uploaded to ${bucketName}.`);
     })
     .catch(err => {
       console.error('ERROR:', err);
     });
 
-  filename = domain + SUFFIX + '.png';
+  filename = last_part;
 
   console.log('filename');
   console.log(filename);
@@ -104,18 +111,24 @@ exports.upload = async function(domain) {
       console.error('ERROR:', err);
     });
 
-  return 'https://storage.cloud.google.com/' + BUCKET_NAME + '/' + domain + SUFFIX + '.png';
+  return 'https://storage.googleapis.com/' + BUCKET_NAME + '/' + last_part;
 }
 
 exports.screen = async function(domain, url) {
 
-  var path = await exports.saveScreen(domain, url)
+  var random = 'abbccddd';
+  var path = await exports.saveScreen({
+    domain, url, random
+  })
+
   console.log('path');
   console.log(path);
   var result = await exports.resize(path);
   console.log('resize');
   //console.log(result);
-  var image_url = await exports.upload(domain);
+  var image_url = await exports.upload({
+    domain, random
+  });
   console.log('image url');
   console.log(image_url);
 
