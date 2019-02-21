@@ -5,7 +5,8 @@ const resize = require('im-resize');
 const WIDTH = '1280';
 const HEIGHT = '1024';
 const Storage = require('@google-cloud/storage');
-
+const randomstring = require('randomstring');
+const moment = require('moment');
 const QUALITY = process.env.QUALITY || 80;
 const BUCKET_NAME = process.env.BUCKET_NAME;
 const PROJECT_ID = process.env.PROJECT_ID;
@@ -18,17 +19,18 @@ const storage = new Storage({
 });
 
 //exports.saveScreen = function(domain, url) {
-exports.saveScreen = function(data) {
+module.exports.saveScreen = function(data) {
 
   var new_name = (data.url || data.domain) + '-' + data.random;
   console.log('new_name: ' + new_name)
   return new Promise(function(resolve, reject) {
     const pageres = new Pageres({
       delay: 1,
-      filename: '<%= url %>',
+      userAgent: process.env.USER_AGENT,
+      filename: `<%= url %>-${data.random}`,
       timeout: 20
     })
-    .src(new_name, [WIDTH + 'x' + HEIGHT], {crop: true})
+    .src(data.url || data.domain, [WIDTH + 'x' + HEIGHT], {crop: true})
     //.src(url || domain, [WIDTH + 'x' + HEIGHT], {crop: false})
     .dest(__dirname + DIR)
     .run()
@@ -38,12 +40,13 @@ exports.saveScreen = function(data) {
       return resolve(output);
     })
     .catch(function (err) {
+      console.log(err)
       return reject(err)
     });
   })
 }
 
-exports.resize = function(path) {
+module.exports.resize = function(path) {
 
   var image = {
     path: path,
@@ -74,8 +77,7 @@ exports.resize = function(path) {
   })
 }
 
-//exports.upload = async function(domain) {
-exports.upload = async function(data) {
+module.exports.upload = async function(data) {
 
   var bucketName = BUCKET_NAME;
   var last_part = data.domain + '-' + data.random + SUFFIX + '.png';
@@ -114,20 +116,27 @@ exports.upload = async function(data) {
   return 'https://storage.googleapis.com/' + BUCKET_NAME + '/' + last_part;
 }
 
-exports.screen = async function(domain, url) {
+module.exports.screen = async function(data) {
 
-  var random = 'abbccddd';
-  var path = await exports.saveScreen({
-    domain, url, random
+  var random = randomstring.generate({
+    length: 8,
+    charset: 'hex'
+  }) + '-' + moment().format('MM-YYYY');
+
+  var path = await module.exports.saveScreen({
+    domain: data.domain,
+    url: data.url,
+    random: random
   })
 
   console.log('path');
   console.log(path);
-  var result = await exports.resize(path);
+  var result = await module.exports.resize(path);
   console.log('resize');
   //console.log(result);
-  var image_url = await exports.upload({
-    domain, random
+  var image_url = await module.exports.upload({
+    domain: data.domain,
+    random: random
   });
   console.log('image url');
   console.log(image_url);
@@ -135,4 +144,14 @@ exports.screen = async function(domain, url) {
   return {
     image: image_url
   };
+}
+
+module.exports.screenCallback = function(data, callback) {
+
+  //return module.exports.screenAsync(data).asCallback(callback);
+  return module.exports.screen(data).then(res => {
+    callback(null, res)
+  }).catch(err => {
+    callback(err)
+  });
 }
