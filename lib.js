@@ -3,6 +3,8 @@ const puppeteer = require('puppeteer');
 const DIR = '/temp';
 const Promise = require('bluebird');
 const resize = require('im-resize');
+//const WIDTH = 1366;
+//const HEIGHT = 768;
 const WIDTH = 1280;
 const HEIGHT = 1024;
 const Storage = require('@google-cloud/storage');
@@ -75,7 +77,7 @@ module.exports.resize = function(path) {
     quality: QUALITY,
     versions: [{
       maxWidth: 400,
-      aspect: '4:3',
+      //aspect: '4:3',
       format: 'png',
       suffix: SUFFIX
     }]
