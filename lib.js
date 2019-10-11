@@ -25,12 +25,12 @@ module.exports.saveScreen = function(data) {
   console.log('new_name: ' + new_name)
   return new Promise(function(resolve, reject) {
     const pageres = new Pageres({
-      delay: 1,
+      delay: process.env.DELAY || 1,
       userAgent: process.env.USER_AGENT,
       filename: `<%= url %>-${data.random}`,
-      timeout: 20
+      timeout: 60
     })
-    .src(data.url || data.domain, [WIDTH + 'x' + HEIGHT], {crop: true})
+    .src(data.url || 'http://' + data.domain, [WIDTH + 'x' + HEIGHT], {crop: true})
     //.src(url || domain, [WIDTH + 'x' + HEIGHT], {crop: false})
     .dest(__dirname + DIR)
     .run()
@@ -40,7 +40,7 @@ module.exports.saveScreen = function(data) {
       return resolve(output);
     })
     .catch(function (err) {
-      console.log(err)
+      console.log(err.message)
       return reject(err)
     });
   })

@@ -26,6 +26,7 @@ app.get('/:domain', async (req, res) => {
     })
     res.json(data)
   } catch (e) {
+    console.log(e.message)
     res.status(500).json({})
   }
 })
