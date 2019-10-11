@@ -16,7 +16,7 @@
     "im-resize": "^2.3.2",
     "lodash": "^4.17.5",
     "moment": "^2.24.0",
-    "pageres": "^5.2.0",
+    "puppeteer": "^1.20.0",
     "randomstring": "^1.1.5",
     "worker-farm": "^1.6.0"
   },

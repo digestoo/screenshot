@@ -1,9 +1,10 @@
-const Pageres = require('pageres');
+//const Pageres = require('pageres');
+const puppeteer = require('puppeteer');
 const DIR = '/temp';
 const Promise = require('bluebird');
 const resize = require('im-resize');
-const WIDTH = '1280';
-const HEIGHT = '1024';
+const WIDTH = 1280;
+const HEIGHT = 1024;
 const Storage = require('@google-cloud/storage');
 const randomstring = require('randomstring');
 const moment = require('moment');
@@ -18,32 +19,48 @@ const storage = new Storage({
   keyFilename: KEY_FILENAME
 });
 
-//exports.saveScreen = function(domain, url) {
-module.exports.saveScreen = function(data) {
+module.exports.saveScreen = async function(data) {
 
   var new_name = (data.url || data.domain) + '-' + data.random;
   console.log('new_name: ' + new_name)
-  return new Promise(function(resolve, reject) {
-    const pageres = new Pageres({
-      delay: process.env.DELAY || 1,
-      userAgent: process.env.USER_AGENT,
-      filename: `<%= url %>-${data.random}`,
-      timeout: 60
-    })
-    .src(data.url || 'http://' + data.domain, [WIDTH + 'x' + HEIGHT], {crop: true})
-    //.src(url || domain, [WIDTH + 'x' + HEIGHT], {crop: false})
-    .dest(__dirname + DIR)
-    .run()
-    .then(function(val) {
-      var output = __dirname + DIR + '/' + new_name + '.png';
-      console.log('Local image: ' + output);
-      return resolve(output);
-    })
-    .catch(function (err) {
-      console.log(err.message)
-      return reject(err)
-    });
-  })
+
+  var goto_url = data.url || 'http://' + data.domain;
+  console.log('goto_url: ' + goto_url)
+
+  var path = '.' + DIR + '/' + new_name + '.jpg';
+
+  var delay = 2000;
+  if (process.env.DELAY) {
+    delay = parseInt(process.env.DELAY);
+  }
+
+  var args = [
+    '--disable-dev-shm-usage',
+    '--no-sandbox',
+    '--disable-setuid-sandbox'
+  ];
+
+  let browser = await puppeteer.launch({
+    headless: true,
+    //executablePath: '',
+    args: args
+  });
+
+
+  let page = await browser.newPage();
+  await page.setViewport({ width: WIDTH, height: HEIGHT });
+  await page.goto(goto_url);
+  await page.waitFor(delay);
+
+  //await page.waitForNavigation();
+  await page.screenshot({ path: path, type: 'jpeg' });
+
+  await page.close();
+  await browser.close();
+
+  var output = __dirname + '/' + path;
+  console.log('Local image: ' + output);
+  return output;
 }
 
 module.exports.resize = function(path) {
