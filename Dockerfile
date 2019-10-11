@@ -19,7 +19,7 @@ RUN apk add --update nodejs nodejs-npm && npm install npm@latest -g
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 # specify a certain version of Chromium you'd like Puppeteer to use. See puppeteer.launch([options]) on how executable path is inferred. BEWARE: Puppeteer is only guaranteed to work with the bundled Chromium, use at your own risk.
-#ENV PUPPETEER_CHROMIUM_REVISION /usr/bin/chromium-browser
+# ENV PUPPETEER_CHROMIUM_REVISION /usr/bin/chromium-browser
 
 # specify an executable path to be used in puppeteer.launch. See puppeteer.launch([options]) on how the executable path is inferred. BEWARE: Puppeteer is only guaranteed to work with the bundled Chromium, use at your own risk.
 ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium-browser
@@ -30,6 +30,7 @@ WORKDIR /app
 COPY package.json /app/
 ADD . /app
 
+RUN npm install pm2 -g
 
 # Add user so we don't need --no-sandbox.
 RUN addgroup -S pptruser && adduser -S -g pptruser pptruser \
@@ -42,11 +43,15 @@ USER pptruser
 
 
 RUN npm install
+
 # RUN yarn install
 
 # Puppeteer v1.17.0 works with Chromium 76.
 # RUN yarn add puppeteer@1.17.0
-#RUN npm install puppeteer@1.17.0
+# RUN npm install puppeteer@1.17.0
 
 EXPOSE 3000
-CMD ["node", "server.js"]
+
+# CMD ["node", "server.js"]
+# CMD ["pm2-runtime", "server.js"]
+CMD ["pm2-runtime", "pm2.yaml"]
