@@ -54,6 +54,9 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 # specify an executable path to be used in puppeteer.launch. See puppeteer.launch([options]) on how the executable path is inferred. BEWARE: Puppeteer is only guaranteed to work with the bundled Chromium, use at your own risk.
 ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium-browser
 
+ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.2/dumb-init_1.2.2_amd64 /usr/local/bin/dumb-init
+RUN chmod +x /usr/local/bin/dumb-init
+
 RUN mkdir /app
 WORKDIR /app
 
@@ -85,6 +88,3 @@ EXPOSE 3000
 # CMD ["node", "server.js"]
 # CMD ["pm2-runtime", "server.js"]
 CMD ["pm2-runtime", "pm2.yaml"]
-
-#ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
-#RUN chmod +x /usr/local/bin/dumb-init
