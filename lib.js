@@ -1,4 +1,3 @@
-//const Pageres = require('pageres');
 const puppeteer = require('puppeteer');
 const DIR = '/temp';
 const Promise = require('bluebird');
@@ -15,6 +14,8 @@ const BUCKET_NAME = process.env.BUCKET_NAME;
 const PROJECT_ID = process.env.PROJECT_ID;
 const KEY_FILENAME = process.env.KEY_FILENAME;
 const SUFFIX = '-thumb1';
+const fs = require('fs')
+
 
 const storage = new Storage({
   projectId: PROJECT_ID,
@@ -64,8 +65,8 @@ var run_cluster = async function(data) {
     var goto_url = data.url || 'http://' + data.domain;
     var path = '.' + DIR + '/' + new_name + '.jpg';
 
-    console.log(new_name)
-    console.log(path)
+    console.log(new_name);
+    console.log(path);
 
     await page.setViewport({ width: WIDTH, height: HEIGHT });
     await page.goto(goto_url);
@@ -130,6 +131,10 @@ module.exports.upload = async function(data) {
 
   console.log('filename');
   console.log(filename);
+
+  if (!fs.existsSync(filename)) {
+    throw new Error('File not exist')
+  }
 
   await storage
     .bucket(bucketName)
