@@ -1,8 +1,7 @@
 const express = require('express')
 const app = express()
 const PORT = process.env.PORT || 3000
-const lib = require('./lib')
-//const lib = require('./lib-pool')
+const lib = process.env.LIB_POOL ? require('./lib-pool') : require('./lib');
 
 app.get('/:domain', async (req, res) => {
 

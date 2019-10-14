@@ -33,9 +33,9 @@ const { Cluster } = require('puppeteer-cluster');
 
 var CLUSTER_TYPE = Cluster.CONCURRENCY_CONTEXT;
 
-if (process.env.CONCURRENCY_CONTEXT === 'CONCURRENCY_PAGE') {
+if (process.env.CLUSTER_TYPE === 'CONCURRENCY_PAGE') {
   CLUSTER_TYPE = Cluster.CONCURRENCY_PAGE;
-} else if (process.env.CONCURRENCY_CONTEXT === 'CONCURRENCY_BROWSER') {
+} else if (process.env.CLUSTER_TYPE === 'CONCURRENCY_BROWSER') {
   CLUSTER_TYPE = Cluster.CONCURRENCY_BROWSER;
 }
 
@@ -51,7 +51,8 @@ var run_cluster = async function() {
       headless: true,
       args: args
     },
-    maxConcurrency: process.env.CONCURRENCY || require('os').cpus().length
+    timeout: process.env.CLUSTER_TIMEOUT || 15000,
+    maxConcurrency: process.env.CLUSTER_CONCURRENCY || require('os').cpus().length
   });
 
   await cluster.task(async ({ page, data }) => {
