@@ -21,48 +21,74 @@ const storage = new Storage({
   keyFilename: KEY_FILENAME
 });
 
-module.exports.saveScreen = async function(data) {
+const args = [
+  '--disable-dev-shm-usage',
+  '--no-sandbox',
+  '--disable-gpu',
+  '--disable-setuid-sandbox'
+];
 
-  var new_name = (data.url || data.domain) + '-' + data.random;
-  console.log('new_name: ' + new_name)
+const { Cluster } = require('puppeteer-cluster');
 
-  var goto_url = data.url || 'http://' + data.domain;
-  console.log('goto_url: ' + goto_url)
+var CLUSTER_TYPE = Cluster.CONCURRENCY_CONTEXT;
 
-  var path = '.' + DIR + '/' + new_name + '.jpg';
+if (process.env.CONCURRENCY_CONTEXT === 'CONCURRENCY_PAGE') {
+  CLUSTER_TYPE = Cluster.CONCURRENCY_PAGE;
+} else if (process.env.CONCURRENCY_CONTEXT === 'CONCURRENCY_BROWSER') {
+  CLUSTER_TYPE = Cluster.CONCURRENCY_BROWSER;
+}
 
-  var delay = 2000;
-  if (process.env.DELAY) {
-    delay = parseInt(process.env.DELAY);
-  }
+console.log(CLUSTER_TYPE);
 
-  var args = [
-    '--disable-dev-shm-usage',
-    '--no-sandbox',
-    '--disable-setuid-sandbox'
-  ];
+var cluster;
 
-  let browser = await puppeteer.launch({
-    headless: true,
-    //executablePath: '',
-    args: args
+var run_cluster = async function(data) {
+
+  var cluster = await Cluster.launch({
+    concurrency: CLUSTER_TYPE,
+    puppeteerOptions: {
+      headless: true,
+      args: args
+    },
+    maxConcurrency: process.env.CONCURRENCY || require('os').cpus().length
   });
 
+  await cluster.task(async ({ page, data: url }) => {
 
-  let page = await browser.newPage();
-  await page.setViewport({ width: WIDTH, height: HEIGHT });
-  await page.goto(goto_url);
-  await page.waitFor(delay);
+    var delay = 2000;
+    if (process.env.DELAY) {
+      delay = parseInt(process.env.DELAY);
+    }
 
-  //await page.waitForNavigation();
-  await page.screenshot({ path: path, type: 'jpeg' });
+    var new_name = (data.url || data.domain) + '-' + data.random;
+    var goto_url = data.url || 'http://' + data.domain;
+    var path = '.' + DIR + '/' + new_name + '.jpg';
 
-  await page.close();
-  await browser.close();
+    console.log(new_name)
+    console.log(path)
 
-  var output = __dirname + '/' + path;
-  console.log('Local image: ' + output);
-  return output;
+    await page.setViewport({ width: WIDTH, height: HEIGHT });
+    await page.goto(goto_url);
+    await page.waitFor(delay);
+    await page.screenshot({ path: path, type: 'jpeg' });
+
+    var output = __dirname + '/' + path;
+    console.log('Local image: ' + output);
+    return output;
+  });
+
+  return cluster;
+}
+
+module.exports.saveScreen = async function(data) {
+
+  if (!cluster) {
+    cluster = await run_cluster(data);
+  }
+
+  return cluster.execute({
+    random: data.random
+  });
 }
 
 module.exports.resize = function(path) {
@@ -167,7 +193,6 @@ module.exports.screen = async function(data) {
 
 module.exports.screenCallback = function(data, callback) {
 
-  //return module.exports.screenAsync(data).asCallback(callback);
   return module.exports.screen(data).then(res => {
     callback(null, res)
   }).catch(err => {

@@ -17,6 +17,7 @@
     "lodash": "^4.17.5",
     "moment": "^2.24.0",
     "puppeteer": "^1.20.0",
+    "puppeteer-cluster": "^0.17.0",
     "randomstring": "^1.1.5",
     "worker-farm": "^1.6.0"
   },
