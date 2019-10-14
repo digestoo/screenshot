@@ -43,7 +43,7 @@ console.log(CLUSTER_TYPE);
 
 var cluster;
 
-var run_cluster = async function(data) {
+var run_cluster = async function() {
 
   var cluster = await Cluster.launch({
     concurrency: CLUSTER_TYPE,
@@ -54,7 +54,10 @@ var run_cluster = async function(data) {
     maxConcurrency: process.env.CONCURRENCY || require('os').cpus().length
   });
 
-  await cluster.task(async ({ page, data: url }) => {
+  await cluster.task(async ({ page, data }) => {
+
+    //console.log('task data')
+    //console.log(data);
 
     var delay = 2000;
     if (process.env.DELAY) {
@@ -78,18 +81,21 @@ var run_cluster = async function(data) {
     return output;
   });
 
+  // Event handler to be called in case of problems
+  cluster.on('taskerror', (err, data) => {
+    console.log(`Error crawling ${data}: ${err.message}`);
+  });
+
   return cluster;
 }
 
 module.exports.saveScreen = async function(data) {
 
   if (!cluster) {
-    cluster = await run_cluster(data);
+    cluster = await run_cluster();
   }
 
-  return cluster.execute({
-    random: data.random
-  });
+  return cluster.execute(data);
 }
 
 module.exports.resize = function(path) {
